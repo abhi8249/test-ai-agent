@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage
+from typing import Generator, Union
 
 load_dotenv()
 
@@ -14,10 +16,19 @@ llm = ChatGoogleGenerativeAI(
     google_api_key=api_key
 )
 
-def chat_with_gemini(prompt: str) -> str:
-    """Send a message to Gemini and return the response text."""
-    try:
-        resp = llm.invoke(prompt)
-        return resp.content
-    except Exception as e:
-        return f"⚠️ Gemini error: {e}"
+def chat_with_gemini(prompt: str, stream: bool = False) -> Union[Generator[str, None, None], str]:
+    """
+    Calls Gemini LLM via LangChain.
+    If stream=True, yields tokens progressively.
+    """
+    if not stream:
+        response = llm.invoke([HumanMessage(content=prompt)])
+        return response.content
+
+    # --- Streaming mode ---
+    def _stream_gen():
+        for chunk in llm.stream([HumanMessage(content=prompt)]):
+            if chunk.content:
+                yield chunk.content
+
+    return _stream_gen()

@@ -16,3 +16,5 @@ fastmcp==0.4.1
 pytesseract==0.3.13
 pillow==10.4.0
 pdf2image==1.17.0
+
+streamlit
